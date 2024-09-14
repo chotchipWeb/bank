@@ -1,5 +1,11 @@
 server:
   port: 8090
+
+cloud:
+  currency-rate: http://localhost:8085/currency-rate/
+  kafka: http://kafka-1:9092
+
+
 spring:
   application:
     name: processing
@@ -19,9 +25,18 @@ spring:
     user: postgres
     password: postgres
     enabled: true
+
+  kafka:
+    producer:
+      bootstrap-servers: ${cloud.kafka}
+      key-serializer: org.apache.kafka.common.serialization.IntegerSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 service:
   currency:
-    url: http://localhost:8085/currency-rate/
+    url: ${cloud.currency-rate}
+
+
 eureka:
   instance:
     hostname: processing-service

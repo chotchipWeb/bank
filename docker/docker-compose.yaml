@@ -1,6 +1,6 @@
 name: Bank
 services:
-
+#----------------------------------------------------------------
   gateway:
     image: "chotchip/gateway:v6"
     build:
@@ -17,10 +17,7 @@ services:
       - "eureka-server"
     networks:
       - ps
-    environment:
-      SPRING_CLOUD_GATEWAY_ROUTES[0]_URI: lb://currency-rate,lb://currency-rate-service-2
-      SPRING_CLOUD_GATEWAY_ROUTES[2]_URI: lb://auth-service
-
+#----------------------------------------------------------------
   postgresdb:
     image: "postgres:${POSTGRES_VERSION}"
     container_name: "postgres-db-container"
@@ -36,7 +33,7 @@ services:
       - "5432:5432"
     networks:
       - ps
-
+#----------------------------------------------------------------
   currency-rate:
     image: "chotchip/currency-rate:v9"
     build:
@@ -48,7 +45,7 @@ services:
       - "eureka-server"
     networks:
       - ps
-
+  #----------------------------------------------------------------
   currency-rate-service-2:
     image: "chotchip/currency-rate:v9"
     build:
@@ -62,9 +59,9 @@ services:
       - "eureka-server"
     networks:
       - ps
-
+#----------------------------------------------------------------
   processing:
-    image: "chotchip/processing:v8"
+    image: "chotchip/processing:v12"
     build:
       context: ../processing/
     container_name: "processing-service-container"
@@ -72,6 +69,7 @@ services:
       - "8090:8090"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresdb:5432/processing
+      - SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVER= http://kafka-1:9092
     stdin_open: true
     tty: true
     depends_on:
@@ -79,8 +77,10 @@ services:
     links:
       - "eureka-server"
       - "postgresdb"
+      - "kafka-1"
     networks:
       - ps
+#----------------------------------------------------------------
   eureka-server:
     image: "chotchip/eureka-service:v4"
     build:
@@ -90,7 +90,7 @@ services:
       - "8761:8761"
     networks:
       - ps
-
+#----------------------------------------------------------------
   auth-service:
     image: "chotchip/auth:v2"
     build:
@@ -100,6 +100,26 @@ services:
       - "9000:9000"
     links:
       - "eureka-server"
+    networks:
+      - ps
+#----------------------------------------------------------------
+  #### Kafka
+  kafka-1:
+    container_name: "kafka-1"
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CREATE_TOPICS= account-events
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_KRAFT_CLUSTER_ID=YTKn7teFTqqd2pMhDpJh5Q
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9090,EXTERNAL://kafka-1:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
     networks:
       - ps
 
