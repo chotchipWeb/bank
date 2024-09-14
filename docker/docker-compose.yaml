@@ -1,0 +1,109 @@
+name: Bank
+services:
+
+  gateway:
+    image: "chotchip/gateway:v6"
+    build:
+      context: ../gateway-service/
+    container_name: "gateway-container"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - processing
+      - currency-rate
+      - currency-rate-service-2
+    links:
+      - "eureka-server"
+    networks:
+      - ps
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES[0]_URI: lb://currency-rate,lb://currency-rate-service-2
+      SPRING_CLOUD_GATEWAY_ROUTES[2]_URI: lb://auth-service
+
+  postgresdb:
+    image: "postgres:${POSTGRES_VERSION}"
+    container_name: "postgres-db-container"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA= /var/lib/postgresql/data
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/sql/postgres-init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - ps
+
+  currency-rate:
+    image: "chotchip/currency-rate:v9"
+    build:
+      context: ../currency-rate/
+    container_name: "currency-rate-container-1"
+    ports:
+      - "8085:8085"
+    links:
+      - "eureka-server"
+    networks:
+      - ps
+
+  currency-rate-service-2:
+    image: "chotchip/currency-rate:v9"
+    build:
+      context: ../currency-rate/
+    container_name: "currency-rate-container-2"
+    environment:
+      - SERVER_PORT=8087
+    ports:
+      - "8087:8087"
+    links:
+      - "eureka-server"
+    networks:
+      - ps
+
+  processing:
+    image: "chotchip/processing:v8"
+    build:
+      context: ../processing/
+    container_name: "processing-service-container"
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresdb:5432/processing
+    stdin_open: true
+    tty: true
+    depends_on:
+      - postgresdb
+    links:
+      - "eureka-server"
+      - "postgresdb"
+    networks:
+      - ps
+  eureka-server:
+    image: "chotchip/eureka-service:v4"
+    build:
+      context: ../eureka-service/
+    container_name: "eureka-server-service-container"
+    ports:
+      - "8761:8761"
+    networks:
+      - ps
+
+  auth-service:
+    image: "chotchip/auth:v2"
+    build:
+      context: ../auth-service/
+    container_name: "auth-container"
+    ports:
+      - "9000:9000"
+    links:
+      - "eureka-server"
+    networks:
+      - ps
+
+networks:
+  ps:
+    driver: bridge
+

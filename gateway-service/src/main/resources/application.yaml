@@ -1,0 +1,38 @@
+server:
+  port: 8080
+cloud:
+  eureka-host: localhost
+  processing-service: http://localhost:8090
+  currency-rate: http://localhost:8085
+  auth-service: http://localhost:9000
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: currency-rate-service
+            uri: lb://currency-rate
+            predicates:
+              - Path= /currency-rate/**
+          - id: exchange-processing-service
+            uri: lb://processing
+            predicates:
+              - Path= /processing/**
+          - id: auth
+            uri: lb://auth-service
+            predicates:
+              - Path= /register/user,/auth
+eureka:
+  instance:
+    hostname: gateway
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+
+

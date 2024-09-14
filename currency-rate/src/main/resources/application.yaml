@@ -1,0 +1,18 @@
+server:
+  port: 8085
+cloud:
+  eureka-host: localhost
+spring:
+  application:
+    name: currency-rate
+eureka:
+  instance:
+    hostname: currency-service
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+
+
