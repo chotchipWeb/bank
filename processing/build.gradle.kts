@@ -36,8 +36,8 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
 
     //Flyway
-//    implementation("org.flywaydb:flyway-core")
-//    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
     //Data jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     //mapStruct

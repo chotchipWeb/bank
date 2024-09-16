@@ -9,12 +9,10 @@ import com.chotchip.processing.exception.AccountNotEqualsUUIDException;
 import com.chotchip.processing.exception.AccountNotFoundException;
 import com.chotchip.processing.mapper.AccountMapper;
 import com.chotchip.processing.repository.AccountRepository;
-import com.chotchip.processing.service.listener.AccountOperationEventListener;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -65,7 +63,7 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
-    private AccountEvent createEvent(String uuid, int userId, int accountId, Operation operation, BigDecimal amount) {
+    private AccountEvent createEvent(String uuid, int userId, int accountId,Operation operation, BigDecimal amount) {
         return AccountEvent.builder()
                 .uuid(uuid)
                 .userId(userId)
