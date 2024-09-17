@@ -1,0 +1,45 @@
+server:
+  port: 8081
+
+cloud:
+  db: localhost
+  kafka: localhost
+  eureka: localhost
+
+spring:
+  application:
+    name: processing-log
+  jpa:
+    hibernate:
+        ddl-auto: none
+    database: postgresql
+  datasource:
+    url: jdbc:postgresql://${cloud.db}:5432/account_history
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    locations: classpath:db/migration
+    url: ${spring.datasource.url}
+    user: postgres
+    password: postgres
+    enabled: true
+
+
+  kafka:
+    consumer:
+      bootstrap-servers: ${cloud.kafka}
+      key-deserializer: org.apache.kafka.common.serialization.IntegerDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: ${spring.application.name}-group
+      auto-offset-reset: earliest
+
+eureka:
+  instance:
+    hostname: processing-log-service
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

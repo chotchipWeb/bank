@@ -1,6 +1,6 @@
 name: Bank
 services:
-#----------------------------------------------------------------
+  #----------------------------------------------------------------
   gateway:
     image: "chotchip/gateway:v6"
     build:
@@ -17,7 +17,7 @@ services:
       - "eureka-server"
     networks:
       - ps
-#----------------------------------------------------------------
+  #----------------------------------------------------------------
   postgresdb:
     image: "postgres:${POSTGRES_VERSION}"
     container_name: "postgres-db-container"
@@ -25,14 +25,14 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - PGDATA= /var/lib/postgresql/data
-    volumes:
+#      - PGDATA= /var/lib/postgresql/data
+#    volumes:
       - ./postgres/data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - ps
-#----------------------------------------------------------------
+  #----------------------------------------------------------------
   currency-rate:
     image: "chotchip/currency-rate:v9"
     build:
@@ -58,9 +58,9 @@ services:
       - "eureka-server"
     networks:
       - ps
-#----------------------------------------------------------------
+  #----------------------------------------------------------------
   processing:
-    image: "chotchip/processing:v14"
+    image: "chotchip/processing:v15"
     build:
       context: ../processing/
     container_name: "processing-service-container"
@@ -79,7 +79,7 @@ services:
       - "kafka-1"
     networks:
       - ps
-#----------------------------------------------------------------
+  #----------------------------------------------------------------
   eureka-server:
     image: "chotchip/eureka-service:v4"
     build:
@@ -89,7 +89,7 @@ services:
       - "8761:8761"
     networks:
       - ps
-#----------------------------------------------------------------
+  #----------------------------------------------------------------
   auth-service:
     image: "chotchip/auth:v2"
     build:
@@ -101,7 +101,7 @@ services:
       - "eureka-server"
     networks:
       - ps
-#----------------------------------------------------------------
+  #----------------------------------------------------------------
   #### Kafka
   kafka-1:
     container_name: "kafka-1"
@@ -121,6 +121,28 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
     networks:
       - ps
+  #----------------------------------------------------------------
+  processing-log:
+    image: "chotchip/processing-log:v5"
+    container_name: "processing-log-cnt"
+    ports:
+      - "8081:8081"
+    build:
+      context: ../processing-log/
+    environment:
+      - CLOUD_KAFKA= http://kafka-1:9092
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresdb:5432/account_history
+    links:
+      - "eureka-server"
+      - "kafka-1"
+      - "postgresdb"
+    depends_on:
+      - postgresdb
+      - kafka-1
+      - eureka-server
+    networks:
+      - ps
+
 
 networks:
   ps:
