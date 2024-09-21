@@ -1,0 +1,11 @@
+server:
+  port: 8010
+
+spring:
+  application:
+    name: Notification
+
+
+telegram:
+  name: 123
+  token: 456
